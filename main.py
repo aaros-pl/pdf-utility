@@ -1,16 +1,37 @@
 import os
+import sys
 from PIL import Image
 from tempfile import TemporaryDirectory
+from tools import pdf_split
 from pdf2image import convert_from_bytes
 from pdf2image.exceptions import (
     PDFInfoNotInstalledError,
     PDFPageCountError,
     PDFSyntaxError
 )
-from tools import pdf_split
 
-input_dir = os.path.join(os.getcwd(), "input")
-output_dir = os.path.join(os.getcwd(), "output")
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    print('running in a PyInstaller bundle')
+    # basedir = os.path.dirname(sys.argv[0])
+    basedir = os.path.dirname(sys.executable)
+    input_dir = os.path.join(basedir, "input")
+    if not os.path.exists(input_dir):
+        print("Katalog wejściowy nie istnieje\n")
+    # print(input_dir)
+    output_dir = os.path.join(basedir, "output")
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    # print(output_dir)
+else:
+    print('running in a normal Python process')
+    input_dir = os.path.join(os.getcwd(), "input")
+    if not os.path.exists(input_dir):
+        print("Katalog wejściowy nie istnieje\n")
+    # print(input_dir)
+    output_dir = os.path.join(os.getcwd(), "output")
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    # print(output_dir)
 
 
 def process_pdf():
@@ -40,3 +61,7 @@ def process_pdf():
                 
 if __name__ == "__main__":
     process_pdf()
+    print("Done")
+
+# process_pdf()
+# input("Press Enter to continue...")
