@@ -34,7 +34,7 @@ else:
     # print(output_dir)
 
 
-def process_pdf(basedir=str, size=1.0):
+def process_pdf(basedir=str, size=1.0, poppler_path=None):
     input_dir = os.path.join(basedir)
     if not os.path.exists(input_dir):
         print("Katalog wejściowy nie istnieje\n")
@@ -55,10 +55,11 @@ def process_pdf(basedir=str, size=1.0):
                         # fmt="jpg", jpegopt={'quality': 40},
                         # fmt="jpg", jpegopt={'quality': 40, 'optimize': True, 'progressive': True},
                         fmt="jpg", jpegopt={'quality': 30, 'optimize': True},
-                        dpi=120, thread_count=os.cpu_count(),
+                        dpi=120, thread_count=max(os.cpu_count(), 4),
                         grayscale=True,
                         # use_pdftocairo=True,
                         hide_annotations=True,
+                        poppler_path=poppler_path,
                         output_folder=path
                     )
                 images_from_bytes[0].save(os.path.join(output_dir, file), save_all=True, append_images=images_from_bytes[1:])
@@ -71,10 +72,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compress and split PDFs.')
     # parser.add_argument('--input', metavar='path', type=str, nargs='?', help='Path to input dir.')
     parser.add_argument("-i", "--input", metavar='path', required=True, default=None, type=str, help="Path to input dir with pdfs.")
+    parser.add_argument("-p", "--poppler", metavar='poppler', required=False, default=None, type=str, help="Path to poppler bin dir.")
     # parser.add_argument("-s", "--size", dest='accumulate', action='store_const', const=sum, default=max, help='sum the integers (default: find the max)')
     parser.add_argument("-s", "--size", metavar='size', required=False, default=1.0, type=float, help="Max size in MB of one PDF file.")
     args = parser.parse_args()
-    process_pdf(args.input, args.size)
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        poppler_path=os.path.join(sys._MEIPASS, r'poppler-bin')
+        process_pdf(args.input, args.size, poppler_path)
+        print("")
+    elif (args.poppler==None):
+        process_pdf(args.input, args.size, os.path.join(os.getcwd(), r'tools/poppler/Library/bin'))
+    else:
+        process_pdf(args.input, args.size, args.poppler)
     print("Done")
 
 # process_pdf()
